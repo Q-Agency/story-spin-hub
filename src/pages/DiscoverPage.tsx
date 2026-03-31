@@ -51,11 +51,29 @@ const DiscoverPage = () => {
   const [categoryFilter, setCategoryFilter] = useState<ScrapedItem["category"] | "all">("all");
   const [dateRange, setDateRange] = useState<{ from?: Date; to?: Date }>({});
   const [viewMode, setViewMode] = useState<"grid" | "timeline">("grid");
+  const [sidebarDate, setSidebarDate] = useState<Date | undefined>(undefined);
+
+  // Compute days that have scraped content
+  const daysWithContent = mockScrapedItems.reduce<Date[]>((acc, item) => {
+    const d = startOfDay(new Date(item.scrapedAt));
+    if (!acc.some((existing) => isSameDay(existing, d))) acc.push(d);
+    return acc;
+  }, []);
+
+  // Count items per day for sidebar
+  const itemCountByDay = mockScrapedItems.reduce<Record<string, number>>((acc, item) => {
+    const key = format(new Date(item.scrapedAt), "yyyy-MM-dd");
+    acc[key] = (acc[key] || 0) + 1;
+    return acc;
+  }, {});
 
   const filtered = mockScrapedItems.filter((item) => {
     if (categoryFilter !== "all" && item.category !== categoryFilter) return false;
     if (searchQuery && !item.title.toLowerCase().includes(searchQuery.toLowerCase()) && !item.summary.toLowerCase().includes(searchQuery.toLowerCase())) return false;
-    if (dateRange.from) {
+    // Sidebar single-day selection takes priority over range
+    if (sidebarDate) {
+      if (!isSameDay(new Date(item.scrapedAt), sidebarDate)) return false;
+    } else if (dateRange.from) {
       const itemDate = new Date(item.scrapedAt);
       const from = startOfDay(dateRange.from);
       const to = dateRange.to ? endOfDay(dateRange.to) : endOfDay(dateRange.from);
@@ -78,6 +96,11 @@ const DiscoverPage = () => {
     return acc;
   }, {});
   const sortedDateKeys = Object.keys(groupedByDate).sort((a, b) => b.localeCompare(a));
+
+  // Items for the selected sidebar day
+  const sidebarDayItems = sidebarDate
+    ? mockScrapedItems.filter((item) => isSameDay(new Date(item.scrapedAt), sidebarDate))
+    : [];
 
   return (
     <AppLayout>
