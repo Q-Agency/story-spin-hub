@@ -5,6 +5,8 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Calendar as CalendarPicker } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { mockScrapedItems } from "@/lib/mock-data";
 import { ScrapedItem } from "@/lib/types";
 import { GenerateModal } from "@/components/GenerateModal";
@@ -18,9 +20,17 @@ import {
   ExternalLink,
   Sparkles,
   Zap,
+  CalendarDays,
+  CalendarRange,
+  List,
+  LayoutGrid,
+  CalendarPlus,
+  X,
 } from "lucide-react";
-import { formatDistanceToNow } from "date-fns";
+import { formatDistanceToNow, format, isWithinInterval, startOfDay, endOfDay, isSameDay } from "date-fns";
 import { motion } from "framer-motion";
+import { cn } from "@/lib/utils";
+import { toast } from "sonner";
 
 const categoryIcons: Record<ScrapedItem["category"], React.ElementType> = {
   news: Newspaper,
