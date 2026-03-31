@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { AppLayout } from "@/components/AppLayout";
 import { Card } from "@/components/ui/card";
@@ -7,12 +7,16 @@ import { StatusBadge, ContentTypeBadge } from "@/components/StatusBadge";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { mockSchedule } from "@/lib/mock-data";
 import { ScheduleItem } from "@/lib/types";
-import { ChevronLeft, ChevronRight, ExternalLink, Clock, MapPin } from "lucide-react";
-import { format, addMonths, subMonths, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay, getDay } from "date-fns";
+import { ChevronLeft, ChevronRight, ExternalLink, Clock, MapPin, GripVertical } from "lucide-react";
+import { format, addMonths, subMonths, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay, getDay, setDate, setMonth, setYear, getDate, getMonth, getYear } from "date-fns";
+import { toast } from "sonner";
 
 const CalendarPage = () => {
   const [currentMonth, setCurrentMonth] = useState(new Date(2026, 2, 1));
   const [selectedDay, setSelectedDay] = useState<Date | null>(null);
+  const [schedule, setSchedule] = useState<ScheduleItem[]>([...mockSchedule]);
+  const [dragOverDay, setDragOverDay] = useState<string | null>(null);
+  const dragItemRef = useRef<string | null>(null);
   const navigate = useNavigate();
 
   const monthStart = startOfMonth(currentMonth);
@@ -22,12 +26,51 @@ const CalendarPage = () => {
   const padDays = Array.from({ length: startPad }, (_, i) => null);
 
   const getEventsForDay = (day: Date) =>
-    mockSchedule.filter((s) => isSameDay(new Date(s.publishAt), day));
+    schedule.filter((s) => isSameDay(new Date(s.publishAt), day));
 
   const selectedDayEvents = selectedDay ? getEventsForDay(selectedDay) : [];
 
   const handleEventClick = (item: ScheduleItem) => {
     navigate(`/content/${item.contentId}`);
+  };
+
+  const handleDragStart = (e: React.DragEvent, itemId: string) => {
+    dragItemRef.current = itemId;
+    e.dataTransfer.effectAllowed = "move";
+    e.dataTransfer.setData("text/plain", itemId);
+  };
+
+  const handleDragOver = (e: React.DragEvent, day: Date) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = "move";
+    setDragOverDay(day.toISOString());
+  };
+
+  const handleDragLeave = () => {
+    setDragOverDay(null);
+  };
+
+  const handleDrop = (e: React.DragEvent, targetDay: Date) => {
+    e.preventDefault();
+    setDragOverDay(null);
+    const itemId = dragItemRef.current;
+    if (!itemId) return;
+
+    setSchedule((prev) =>
+      prev.map((item) => {
+        if (item.id !== itemId) return item;
+        const oldDate = new Date(item.publishAt);
+        const newDate = new Date(targetDay);
+        newDate.setHours(oldDate.getHours(), oldDate.getMinutes(), oldDate.getSeconds());
+        return { ...item, publishAt: newDate.toISOString() };
+      })
+    );
+
+    const item = schedule.find((s) => s.id === itemId);
+    if (item) {
+      toast.success(`"${item.contentTitle}" moved to ${format(targetDay, "MMM d")}`);
+    }
+    dragItemRef.current = null;
   };
 
   return (
@@ -73,9 +116,14 @@ const CalendarPage = () => {
                   <div
                     key={day.toISOString()}
                     onClick={() => setSelectedDay(day)}
+                    onDragOver={(e) => handleDragOver(e, day)}
+                    onDragLeave={handleDragLeave}
+                    onDrop={(e) => handleDrop(e, day)}
                     className={`min-h-[100px] border-b border-r border-border/40 p-1.5 cursor-pointer transition-colors hover:bg-accent/30 ${
                       isToday ? "bg-primary/5" : ""
-                    } ${isSelected ? "ring-2 ring-primary ring-inset bg-primary/5" : ""}`}
+                    } ${isSelected ? "ring-2 ring-primary ring-inset bg-primary/5" : ""} ${
+                      dragOverDay === day.toISOString() ? "bg-primary/15 ring-2 ring-primary/50 ring-inset" : ""
+                    }`}
                   >
                     <span className={`text-xs font-medium inline-flex h-6 w-6 items-center justify-center rounded-full ${
                       isToday ? "gradient-primary text-primary-foreground" : "text-muted-foreground"
@@ -87,9 +135,12 @@ const CalendarPage = () => {
                         <Popover key={e.id}>
                           <PopoverTrigger asChild>
                             <div
-                              className="rounded px-1.5 py-0.5 text-[10px] bg-primary/10 text-primary truncate cursor-pointer hover:bg-primary/20 transition-colors"
+                              draggable
+                              onDragStart={(ev) => { ev.stopPropagation(); handleDragStart(ev, e.id); }}
+                              className="rounded px-1.5 py-0.5 text-[10px] bg-primary/10 text-primary truncate cursor-grab active:cursor-grabbing hover:bg-primary/20 transition-colors flex items-center gap-0.5"
                               onClick={(ev) => ev.stopPropagation()}
                             >
+                              <GripVertical className="h-2.5 w-2.5 shrink-0 opacity-40" />
                               {e.contentTitle}
                             </div>
                           </PopoverTrigger>
@@ -165,7 +216,7 @@ const CalendarPage = () => {
         <div className="space-y-3">
           <h2 className="text-lg font-display text-foreground">Upcoming</h2>
           <div className="space-y-2">
-            {mockSchedule
+            {schedule
               .filter((s) => s.status !== "published")
               .sort((a, b) => new Date(a.publishAt).getTime() - new Date(b.publishAt).getTime())
               .map((item) => (
