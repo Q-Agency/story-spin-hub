@@ -116,9 +116,14 @@ const CalendarPage = () => {
                   <div
                     key={day.toISOString()}
                     onClick={() => setSelectedDay(day)}
+                    onDragOver={(e) => handleDragOver(e, day)}
+                    onDragLeave={handleDragLeave}
+                    onDrop={(e) => handleDrop(e, day)}
                     className={`min-h-[100px] border-b border-r border-border/40 p-1.5 cursor-pointer transition-colors hover:bg-accent/30 ${
                       isToday ? "bg-primary/5" : ""
-                    } ${isSelected ? "ring-2 ring-primary ring-inset bg-primary/5" : ""}`}
+                    } ${isSelected ? "ring-2 ring-primary ring-inset bg-primary/5" : ""} ${
+                      dragOverDay === day.toISOString() ? "bg-primary/15 ring-2 ring-primary/50 ring-inset" : ""
+                    }`}
                   >
                     <span className={`text-xs font-medium inline-flex h-6 w-6 items-center justify-center rounded-full ${
                       isToday ? "gradient-primary text-primary-foreground" : "text-muted-foreground"
@@ -130,9 +135,12 @@ const CalendarPage = () => {
                         <Popover key={e.id}>
                           <PopoverTrigger asChild>
                             <div
-                              className="rounded px-1.5 py-0.5 text-[10px] bg-primary/10 text-primary truncate cursor-pointer hover:bg-primary/20 transition-colors"
+                              draggable
+                              onDragStart={(ev) => { ev.stopPropagation(); handleDragStart(ev, e.id); }}
+                              className="rounded px-1.5 py-0.5 text-[10px] bg-primary/10 text-primary truncate cursor-grab active:cursor-grabbing hover:bg-primary/20 transition-colors flex items-center gap-0.5"
                               onClick={(ev) => ev.stopPropagation()}
                             >
+                              <GripVertical className="h-2.5 w-2.5 shrink-0 opacity-40" />
                               {e.contentTitle}
                             </div>
                           </PopoverTrigger>
