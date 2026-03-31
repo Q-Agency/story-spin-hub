@@ -18,8 +18,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { ContentType, StreamStep } from "@/lib/types";
-import { mockStreamSteps } from "@/lib/mock-data";
-import { Sparkles, Search, PenTool, Image, CheckCircle2, Loader2, Brain } from "lucide-react";
+import { mockStreamSteps, mockScrapedItems } from "@/lib/mock-data";
+import { Sparkles, Search, PenTool, Image, CheckCircle2, Loader2, Brain, Globe } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
 
