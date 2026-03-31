@@ -216,7 +216,7 @@ const CalendarPage = () => {
         <div className="space-y-3">
           <h2 className="text-lg font-display text-foreground">Upcoming</h2>
           <div className="space-y-2">
-            {mockSchedule
+            {schedule
               .filter((s) => s.status !== "published")
               .sort((a, b) => new Date(a.publishAt).getTime() - new Date(b.publishAt).getTime())
               .map((item) => (
