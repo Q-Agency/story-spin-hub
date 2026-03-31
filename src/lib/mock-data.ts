@@ -1,4 +1,4 @@
-import { ContentItem, GenerationRun, ScheduleItem, BrandSettings, DashboardStats } from './types';
+import { ContentItem, GenerationRun, ScheduleItem, BrandSettings, DashboardStats, ScrapedItem } from './types';
 
 export const mockStats: DashboardStats = {
   totalContent: 47,

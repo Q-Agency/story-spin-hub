@@ -24,6 +24,7 @@ const App = () => (
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<Index />} />
+          <Route path="/discover" element={<DiscoverPage />} />
           <Route path="/content" element={<ContentList />} />
           <Route path="/content/:id" element={<ContentEditor />} />
           <Route path="/calendar" element={<CalendarPage />} />

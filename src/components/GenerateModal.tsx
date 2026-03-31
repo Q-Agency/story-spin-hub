@@ -34,11 +34,12 @@ const stepIcons = {
 
 interface GenerateModalProps {
   trigger?: React.ReactNode;
+  prefillTopic?: string;
 }
 
-export function GenerateModal({ trigger }: GenerateModalProps) {
+export function GenerateModal({ trigger, prefillTopic }: GenerateModalProps) {
   const [open, setOpen] = useState(false);
-  const [topic, setTopic] = useState("");
+  const [topic, setTopic] = useState(prefillTopic || "");
   const [contentType, setContentType] = useState<ContentType>("blog");
   const [additionalNotes, setAdditionalNotes] = useState("");
   const [isGenerating, setIsGenerating] = useState(false);
