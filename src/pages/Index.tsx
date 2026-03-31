@@ -73,12 +73,18 @@ const Dashboard = () => {
             </div>
           </div>
 
-          {/* Activity Feed */}
-          <div className="space-y-3">
-            <h2 className="text-lg font-display text-foreground">Recent Activity</h2>
-            <Card className="p-3 shadow-card border-border/60">
-              <ActivityFeed />
-            </Card>
+          {/* Sidebar column */}
+          <div className="space-y-6">
+            {/* Trending from Web */}
+            <TrendingWidget />
+
+            {/* Activity Feed */}
+            <div className="space-y-3">
+              <h2 className="text-lg font-display text-foreground">Recent Activity</h2>
+              <Card className="p-3 shadow-card border-border/60">
+                <ActivityFeed />
+              </Card>
+            </div>
           </div>
         </div>
       </div>
