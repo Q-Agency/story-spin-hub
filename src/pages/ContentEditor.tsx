@@ -36,6 +36,15 @@ const ContentEditor = () => {
 
   const [body, setBody] = useState(item?.body || "");
   const [activeTab, setActiveTab] = useState("editor");
+  const [scheduleDate, setScheduleDate] = useState<Date | undefined>(
+    item?.scheduledFor ? new Date(item.scheduledFor) : undefined
+  );
+  const [scheduleTime, setScheduleTime] = useState(
+    item?.scheduledFor ? format(new Date(item.scheduledFor), "HH:mm") : "09:00"
+  );
+  const [schedulePlatform, setSchedulePlatform] = useState(
+    item?.contentType === "linkedin" ? "LinkedIn" : item?.contentType === "twitter" ? "Twitter" : "Blog"
+  );
 
   if (!item) {
     return (
