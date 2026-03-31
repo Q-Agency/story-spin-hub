@@ -14,6 +14,9 @@ import { toast } from "sonner";
 const CalendarPage = () => {
   const [currentMonth, setCurrentMonth] = useState(new Date(2026, 2, 1));
   const [selectedDay, setSelectedDay] = useState<Date | null>(null);
+  const [schedule, setSchedule] = useState<ScheduleItem[]>([...mockSchedule]);
+  const [dragOverDay, setDragOverDay] = useState<string | null>(null);
+  const dragItemRef = useRef<string | null>(null);
   const navigate = useNavigate();
 
   const monthStart = startOfMonth(currentMonth);
@@ -23,12 +26,51 @@ const CalendarPage = () => {
   const padDays = Array.from({ length: startPad }, (_, i) => null);
 
   const getEventsForDay = (day: Date) =>
-    mockSchedule.filter((s) => isSameDay(new Date(s.publishAt), day));
+    schedule.filter((s) => isSameDay(new Date(s.publishAt), day));
 
   const selectedDayEvents = selectedDay ? getEventsForDay(selectedDay) : [];
 
   const handleEventClick = (item: ScheduleItem) => {
     navigate(`/content/${item.contentId}`);
+  };
+
+  const handleDragStart = (e: React.DragEvent, itemId: string) => {
+    dragItemRef.current = itemId;
+    e.dataTransfer.effectAllowed = "move";
+    e.dataTransfer.setData("text/plain", itemId);
+  };
+
+  const handleDragOver = (e: React.DragEvent, day: Date) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = "move";
+    setDragOverDay(day.toISOString());
+  };
+
+  const handleDragLeave = () => {
+    setDragOverDay(null);
+  };
+
+  const handleDrop = (e: React.DragEvent, targetDay: Date) => {
+    e.preventDefault();
+    setDragOverDay(null);
+    const itemId = dragItemRef.current;
+    if (!itemId) return;
+
+    setSchedule((prev) =>
+      prev.map((item) => {
+        if (item.id !== itemId) return item;
+        const oldDate = new Date(item.publishAt);
+        const newDate = new Date(targetDay);
+        newDate.setHours(oldDate.getHours(), oldDate.getMinutes(), oldDate.getSeconds());
+        return { ...item, publishAt: newDate.toISOString() };
+      })
+    );
+
+    const item = schedule.find((s) => s.id === itemId);
+    if (item) {
+      toast.success(`"${item.contentTitle}" moved to ${format(targetDay, "MMM d")}`);
+    }
+    dragItemRef.current = null;
   };
 
   return (
