@@ -18,8 +18,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { ContentType, StreamStep } from "@/lib/types";
-import { mockStreamSteps } from "@/lib/mock-data";
-import { Sparkles, Search, PenTool, Image, CheckCircle2, Loader2, Brain } from "lucide-react";
+import { mockStreamSteps, mockScrapedItems } from "@/lib/mock-data";
+import { Sparkles, Search, PenTool, Image, CheckCircle2, Loader2, Brain, Globe } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -34,11 +34,12 @@ const stepIcons = {
 
 interface GenerateModalProps {
   trigger?: React.ReactNode;
+  prefillTopic?: string;
 }
 
-export function GenerateModal({ trigger }: GenerateModalProps) {
+export function GenerateModal({ trigger, prefillTopic }: GenerateModalProps) {
   const [open, setOpen] = useState(false);
-  const [topic, setTopic] = useState("");
+  const [topic, setTopic] = useState(prefillTopic || "");
   const [contentType, setContentType] = useState<ContentType>("blog");
   const [additionalNotes, setAdditionalNotes] = useState("");
   const [isGenerating, setIsGenerating] = useState(false);
@@ -46,13 +47,13 @@ export function GenerateModal({ trigger }: GenerateModalProps) {
   const [currentStepIdx, setCurrentStepIdx] = useState(-1);
 
   const reset = useCallback(() => {
-    setTopic("");
+    setTopic(prefillTopic || "");
     setContentType("blog");
     setAdditionalNotes("");
     setIsGenerating(false);
     setSteps([]);
     setCurrentStepIdx(-1);
-  }, []);
+  }, [prefillTopic]);
 
   useEffect(() => {
     if (!open) {
@@ -145,6 +146,27 @@ export function GenerateModal({ trigger }: GenerateModalProps) {
                 rows={3}
               />
             </div>
+            {/* Related web context */}
+            {topic.trim().length > 2 && (() => {
+              const keywords = topic.toLowerCase().split(/\s+/);
+              const matched = mockScrapedItems.filter(item =>
+                keywords.some(k => item.title.toLowerCase().includes(k) || item.tags.some(t => t.toLowerCase().includes(k)))
+              ).slice(0, 2);
+              if (matched.length === 0) return null;
+              return (
+                <div className="space-y-2 rounded-lg bg-surface-sunken p-3">
+                  <p className="text-xs font-medium text-muted-foreground flex items-center gap-1.5">
+                    <Globe className="h-3 w-3" /> Related context from the web
+                  </p>
+                  {matched.map((item) => (
+                    <div key={item.id} className="text-xs p-2 rounded bg-background border border-border/40">
+                      <p className="font-medium text-foreground line-clamp-1">{item.title}</p>
+                      <p className="text-muted-foreground line-clamp-1 mt-0.5">{item.summary}</p>
+                    </div>
+                  ))}
+                </div>
+              );
+            })()}
             <Button
               onClick={handleGenerate}
               disabled={!topic.trim()}

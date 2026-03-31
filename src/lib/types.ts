@@ -74,3 +74,16 @@ export interface DashboardStats {
   generatedThisWeek: number;
   publishRate: number;
 }
+
+export interface ScrapedItem {
+  id: string;
+  title: string;
+  summary: string;
+  sourceUrl: string;
+  sourceName: string;
+  imageUrl?: string;
+  category: 'news' | 'event' | 'trend' | 'research';
+  tags: string[];
+  scrapedAt: string;
+  relevanceScore: number;
+}

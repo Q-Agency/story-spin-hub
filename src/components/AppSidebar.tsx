@@ -22,10 +22,12 @@ import {
   BarChart3,
   Zap,
   BookOpen,
+  Globe,
 } from "lucide-react";
 
 const mainItems = [
   { title: "Dashboard", url: "/", icon: LayoutDashboard },
+  { title: "Discover", url: "/discover", icon: Globe },
   { title: "Content", url: "/content", icon: FileText },
   { title: "Calendar", url: "/calendar", icon: CalendarDays },
   { title: "Analytics", url: "/analytics", icon: BarChart3 },
