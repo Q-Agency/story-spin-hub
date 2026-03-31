@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { AppLayout } from "@/components/AppLayout";
 import { Card } from "@/components/ui/card";
@@ -7,8 +7,9 @@ import { StatusBadge, ContentTypeBadge } from "@/components/StatusBadge";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { mockSchedule } from "@/lib/mock-data";
 import { ScheduleItem } from "@/lib/types";
-import { ChevronLeft, ChevronRight, ExternalLink, Clock, MapPin } from "lucide-react";
-import { format, addMonths, subMonths, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay, getDay } from "date-fns";
+import { ChevronLeft, ChevronRight, ExternalLink, Clock, MapPin, GripVertical } from "lucide-react";
+import { format, addMonths, subMonths, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay, getDay, setDate, setMonth, setYear, getDate, getMonth, getYear } from "date-fns";
+import { toast } from "sonner";
 
 const CalendarPage = () => {
   const [currentMonth, setCurrentMonth] = useState(new Date(2026, 2, 1));
