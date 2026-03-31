@@ -47,13 +47,13 @@ export function GenerateModal({ trigger, prefillTopic }: GenerateModalProps) {
   const [currentStepIdx, setCurrentStepIdx] = useState(-1);
 
   const reset = useCallback(() => {
-    setTopic("");
+    setTopic(prefillTopic || "");
     setContentType("blog");
     setAdditionalNotes("");
     setIsGenerating(false);
     setSteps([]);
     setCurrentStepIdx(-1);
-  }, []);
+  }, [prefillTopic]);
 
   useEffect(() => {
     if (!open) {
