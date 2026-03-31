@@ -3,6 +3,7 @@ import { GenerateModal } from "@/components/GenerateModal";
 import { StatsGrid } from "@/components/StatsGrid";
 import { ContentCard } from "@/components/ContentCard";
 import { ActivityFeed } from "@/components/ActivityFeed";
+import { TrendingWidget } from "@/components/TrendingWidget";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { mockContent, mockStats } from "@/lib/mock-data";
