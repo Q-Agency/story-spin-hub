@@ -49,12 +49,35 @@ const categoryColors: Record<ScrapedItem["category"], string> = {
 const DiscoverPage = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [categoryFilter, setCategoryFilter] = useState<ScrapedItem["category"] | "all">("all");
+  const [dateRange, setDateRange] = useState<{ from?: Date; to?: Date }>({});
+  const [viewMode, setViewMode] = useState<"grid" | "timeline">("grid");
 
   const filtered = mockScrapedItems.filter((item) => {
     if (categoryFilter !== "all" && item.category !== categoryFilter) return false;
     if (searchQuery && !item.title.toLowerCase().includes(searchQuery.toLowerCase()) && !item.summary.toLowerCase().includes(searchQuery.toLowerCase())) return false;
+    if (dateRange.from) {
+      const itemDate = new Date(item.scrapedAt);
+      const from = startOfDay(dateRange.from);
+      const to = dateRange.to ? endOfDay(dateRange.to) : endOfDay(dateRange.from);
+      if (!isWithinInterval(itemDate, { start: from, end: to })) return false;
+    }
     return true;
   });
+
+  const handleSchedule = (item: ScrapedItem) => {
+    toast.success(`"${item.title}" added to content calendar`, {
+      description: "You can find it in the Calendar view to set a publish date.",
+    });
+  };
+
+  // Group items by date for timeline view
+  const groupedByDate = filtered.reduce<Record<string, ScrapedItem[]>>((acc, item) => {
+    const dateKey = format(new Date(item.scrapedAt), "yyyy-MM-dd");
+    if (!acc[dateKey]) acc[dateKey] = [];
+    acc[dateKey].push(item);
+    return acc;
+  }, {});
+  const sortedDateKeys = Object.keys(groupedByDate).sort((a, b) => b.localeCompare(a));
 
   return (
     <AppLayout>
