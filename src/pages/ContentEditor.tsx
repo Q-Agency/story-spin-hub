@@ -10,6 +10,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Checkbox } from "@/components/ui/checkbox";
 import { mockContent } from "@/lib/mock-data";
 import { ContentStatus } from "@/lib/types";
 import {
@@ -22,12 +23,23 @@ import {
   BookOpen,
   Clock,
   CalendarIcon,
+  Plus,
+  Trash2,
 } from "lucide-react";
 import { toast } from "sonner";
 import { formatDistanceToNow, format } from "date-fns";
 import { cn } from "@/lib/utils";
 
 const statusFlow: ContentStatus[] = ["draft", "review", "approved", "scheduled", "published"];
+
+const PLATFORMS = ["Blog", "LinkedIn", "Twitter", "Newsletter"] as const;
+
+interface ScheduleEntry {
+  id: string;
+  platform: string;
+  date?: Date;
+  time: string;
+}
 
 const ContentEditor = () => {
   const { id } = useParams();
@@ -36,15 +48,18 @@ const ContentEditor = () => {
 
   const [body, setBody] = useState(item?.body || "");
   const [activeTab, setActiveTab] = useState("editor");
-  const [scheduleDate, setScheduleDate] = useState<Date | undefined>(
-    item?.scheduledFor ? new Date(item.scheduledFor) : undefined
-  );
-  const [scheduleTime, setScheduleTime] = useState(
-    item?.scheduledFor ? format(new Date(item.scheduledFor), "HH:mm") : "09:00"
-  );
-  const [schedulePlatform, setSchedulePlatform] = useState(
-    item?.contentType === "linkedin" ? "LinkedIn" : item?.contentType === "twitter" ? "Twitter" : "Blog"
-  );
+
+  const defaultPlatform =
+    item?.contentType === "linkedin" ? "LinkedIn" : item?.contentType === "twitter" ? "Twitter" : "Blog";
+
+  const [scheduleEntries, setScheduleEntries] = useState<ScheduleEntry[]>([
+    {
+      id: crypto.randomUUID(),
+      platform: defaultPlatform,
+      date: item?.scheduledFor ? new Date(item.scheduledFor) : undefined,
+      time: item?.scheduledFor ? format(new Date(item.scheduledFor), "HH:mm") : "09:00",
+    },
+  ]);
 
   if (!item) {
     return (
@@ -65,15 +80,39 @@ const ContentEditor = () => {
   const handleSave = () => toast.success("Draft saved");
   const handleAdvance = () => toast.success(`Moved to ${nextStatus}`);
   const handleRegenerate = () => toast.info("Regeneration started...");
-  const handleSchedule = () => {
-    if (!scheduleDate) {
-      toast.error("Please select a date first");
+
+  const addEntry = () => {
+    const usedPlatforms = scheduleEntries.map((e) => e.platform);
+    const next = PLATFORMS.find((p) => !usedPlatforms.includes(p)) || PLATFORMS[0];
+    setScheduleEntries((prev) => [
+      ...prev,
+      { id: crypto.randomUUID(), platform: next, date: undefined, time: "09:00" },
+    ]);
+  };
+
+  const removeEntry = (entryId: string) => {
+    setScheduleEntries((prev) => prev.filter((e) => e.id !== entryId));
+  };
+
+  const updateEntry = (entryId: string, patch: Partial<ScheduleEntry>) => {
+    setScheduleEntries((prev) =>
+      prev.map((e) => (e.id === entryId ? { ...e, ...patch } : e))
+    );
+  };
+
+  const handleScheduleAll = () => {
+    const valid = scheduleEntries.filter((e) => e.date);
+    if (valid.length === 0) {
+      toast.error("Please select a date for at least one platform");
       return;
     }
-    const [h, m] = scheduleTime.split(":").map(Number);
-    const dt = new Date(scheduleDate);
-    dt.setHours(h, m, 0);
-    toast.success(`Scheduled for ${format(dt, "MMM d, yyyy")} at ${scheduleTime} on ${schedulePlatform}`);
+    const summaries = valid.map((e) => {
+      const [h, m] = e.time.split(":").map(Number);
+      const dt = new Date(e.date!);
+      dt.setHours(h, m, 0);
+      return `${e.platform} on ${format(dt, "MMM d")} at ${e.time}`;
+    });
+    toast.success(`Scheduled: ${summaries.join(", ")}`);
   };
 
   return (
@@ -194,81 +233,113 @@ const ContentEditor = () => {
               </div>
             </Card>
 
-            {/* Schedule */}
+            {/* Multi-platform Schedule */}
             <Card className="p-4 border-border/60 shadow-card space-y-3">
-              <h3 className="text-sm font-medium text-foreground flex items-center gap-1.5">
-                <CalendarDays className="h-3.5 w-3.5" /> Schedule Publishing
-              </h3>
+              <div className="flex items-center justify-between">
+                <h3 className="text-sm font-medium text-foreground flex items-center gap-1.5">
+                  <CalendarDays className="h-3.5 w-3.5" /> Schedule Publishing
+                </h3>
+                <Badge variant="secondary" className="text-[10px]">
+                  {scheduleEntries.length} platform{scheduleEntries.length !== 1 ? "s" : ""}
+                </Badge>
+              </div>
 
-              <div className="space-y-2">
-                <label className="text-xs text-muted-foreground">Date</label>
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className={cn(
-                        "w-full justify-start text-left text-xs font-normal",
-                        !scheduleDate && "text-muted-foreground"
+              <div className="space-y-3">
+                {scheduleEntries.map((entry, idx) => (
+                  <div key={entry.id} className="rounded-lg border border-border/60 p-3 space-y-2 bg-accent/20">
+                    <div className="flex items-center justify-between">
+                      <Select
+                        value={entry.platform}
+                        onValueChange={(v) => updateEntry(entry.id, { platform: v })}
+                      >
+                        <SelectTrigger className="h-7 text-xs w-[130px]">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {PLATFORMS.map((p) => (
+                            <SelectItem key={p} value={p} className="text-xs">{p === "Twitter" ? "Twitter / X" : p}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      {scheduleEntries.length > 1 && (
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-6 w-6 text-muted-foreground hover:text-destructive"
+                          onClick={() => removeEntry(entry.id)}
+                        >
+                          <Trash2 className="h-3 w-3" />
+                        </Button>
                       )}
+                    </div>
+
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className={cn(
+                            "w-full justify-start text-left text-xs font-normal h-7",
+                            !entry.date && "text-muted-foreground"
+                          )}
+                        >
+                          <CalendarIcon className="mr-2 h-3 w-3" />
+                          {entry.date ? format(entry.date, "MMM d, yyyy") : "Pick a date"}
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-auto p-0" align="start">
+                        <Calendar
+                          mode="single"
+                          selected={entry.date}
+                          onSelect={(d) => updateEntry(entry.id, { date: d })}
+                          initialFocus
+                          className="p-3 pointer-events-auto"
+                        />
+                      </PopoverContent>
+                    </Popover>
+
+                    <Select
+                      value={entry.time}
+                      onValueChange={(v) => updateEntry(entry.id, { time: v })}
                     >
-                      <CalendarIcon className="mr-2 h-3.5 w-3.5" />
-                      {scheduleDate ? format(scheduleDate, "PPP") : "Pick a date"}
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0" align="start">
-                    <Calendar
-                      mode="single"
-                      selected={scheduleDate}
-                      onSelect={setScheduleDate}
-                      initialFocus
-                      className={cn("p-3 pointer-events-auto")}
-                    />
-                  </PopoverContent>
-                </Popover>
+                      <SelectTrigger className="h-7 text-xs">
+                        <Clock className="mr-2 h-3 w-3" />
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {Array.from({ length: 24 }, (_, h) =>
+                          ["00", "30"].map((m) => {
+                            const val = `${String(h).padStart(2, "0")}:${m}`;
+                            return <SelectItem key={val} value={val} className="text-xs">{val}</SelectItem>;
+                          })
+                        )}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                ))}
               </div>
 
-              <div className="space-y-2">
-                <label className="text-xs text-muted-foreground">Time</label>
-                <Select value={scheduleTime} onValueChange={setScheduleTime}>
-                  <SelectTrigger className="h-8 text-xs">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {Array.from({ length: 24 }, (_, h) =>
-                      ["00", "30"].map((m) => {
-                        const val = `${String(h).padStart(2, "0")}:${m}`;
-                        return <SelectItem key={val} value={val} className="text-xs">{val}</SelectItem>;
-                      })
-                    )}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div className="space-y-2">
-                <label className="text-xs text-muted-foreground">Platform</label>
-                <Select value={schedulePlatform} onValueChange={setSchedulePlatform}>
-                  <SelectTrigger className="h-8 text-xs">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="Blog" className="text-xs">Blog</SelectItem>
-                    <SelectItem value="LinkedIn" className="text-xs">LinkedIn</SelectItem>
-                    <SelectItem value="Twitter" className="text-xs">Twitter / X</SelectItem>
-                    <SelectItem value="Newsletter" className="text-xs">Newsletter</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
+              {scheduleEntries.length < PLATFORMS.length && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="w-full gap-1.5 text-xs"
+                  onClick={addEntry}
+                >
+                  <Plus className="h-3 w-3" /> Add Platform
+                </Button>
+              )}
 
               <Button
                 size="sm"
                 className="w-full gap-1.5 text-xs gradient-primary text-primary-foreground"
-                onClick={handleSchedule}
+                onClick={handleScheduleAll}
               >
                 <CalendarDays className="h-3.5 w-3.5" />
-                {scheduleDate ? "Update Schedule" : "Schedule Content"}
+                Schedule {scheduleEntries.filter((e) => e.date).length > 1 ? "All" : "Content"}
               </Button>
             </Card>
+
             {item.imageUrl && (
               <Card className="p-4 border-border/60 shadow-card space-y-2">
                 <h3 className="text-sm font-medium text-foreground">Hero Image</h3>
