@@ -194,7 +194,81 @@ const ContentEditor = () => {
               </div>
             </Card>
 
-            {/* Hero Image */}
+            {/* Schedule */}
+            <Card className="p-4 border-border/60 shadow-card space-y-3">
+              <h3 className="text-sm font-medium text-foreground flex items-center gap-1.5">
+                <CalendarDays className="h-3.5 w-3.5" /> Schedule Publishing
+              </h3>
+
+              <div className="space-y-2">
+                <label className="text-xs text-muted-foreground">Date</label>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className={cn(
+                        "w-full justify-start text-left text-xs font-normal",
+                        !scheduleDate && "text-muted-foreground"
+                      )}
+                    >
+                      <CalendarIcon className="mr-2 h-3.5 w-3.5" />
+                      {scheduleDate ? format(scheduleDate, "PPP") : "Pick a date"}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="start">
+                    <Calendar
+                      mode="single"
+                      selected={scheduleDate}
+                      onSelect={setScheduleDate}
+                      initialFocus
+                      className={cn("p-3 pointer-events-auto")}
+                    />
+                  </PopoverContent>
+                </Popover>
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-xs text-muted-foreground">Time</label>
+                <Select value={scheduleTime} onValueChange={setScheduleTime}>
+                  <SelectTrigger className="h-8 text-xs">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {Array.from({ length: 24 }, (_, h) =>
+                      ["00", "30"].map((m) => {
+                        const val = `${String(h).padStart(2, "0")}:${m}`;
+                        return <SelectItem key={val} value={val} className="text-xs">{val}</SelectItem>;
+                      })
+                    )}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-xs text-muted-foreground">Platform</label>
+                <Select value={schedulePlatform} onValueChange={setSchedulePlatform}>
+                  <SelectTrigger className="h-8 text-xs">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Blog" className="text-xs">Blog</SelectItem>
+                    <SelectItem value="LinkedIn" className="text-xs">LinkedIn</SelectItem>
+                    <SelectItem value="Twitter" className="text-xs">Twitter / X</SelectItem>
+                    <SelectItem value="Newsletter" className="text-xs">Newsletter</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <Button
+                size="sm"
+                className="w-full gap-1.5 text-xs gradient-primary text-primary-foreground"
+                onClick={handleSchedule}
+              >
+                <CalendarDays className="h-3.5 w-3.5" />
+                {scheduleDate ? "Update Schedule" : "Schedule Content"}
+              </Button>
+            </Card>
             {item.imageUrl && (
               <Card className="p-4 border-border/60 shadow-card space-y-2">
                 <h3 className="text-sm font-medium text-foreground">Hero Image</h3>
