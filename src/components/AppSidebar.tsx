@@ -22,6 +22,7 @@ import {
   BarChart3,
   Zap,
   BookOpen,
+  Globe,
 } from "lucide-react";
 
 const mainItems = [
