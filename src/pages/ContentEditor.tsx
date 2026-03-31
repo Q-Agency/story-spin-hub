@@ -7,6 +7,9 @@ import { Card } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Calendar } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { mockContent } from "@/lib/mock-data";
 import { ContentStatus } from "@/lib/types";
 import {
@@ -18,9 +21,11 @@ import {
   ExternalLink,
   BookOpen,
   Clock,
+  CalendarIcon,
 } from "lucide-react";
 import { toast } from "sonner";
 import { formatDistanceToNow, format } from "date-fns";
+import { cn } from "@/lib/utils";
 
 const statusFlow: ContentStatus[] = ["draft", "review", "approved", "scheduled", "published"];
 
