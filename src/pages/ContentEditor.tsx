@@ -65,6 +65,16 @@ const ContentEditor = () => {
   const handleSave = () => toast.success("Draft saved");
   const handleAdvance = () => toast.success(`Moved to ${nextStatus}`);
   const handleRegenerate = () => toast.info("Regeneration started...");
+  const handleSchedule = () => {
+    if (!scheduleDate) {
+      toast.error("Please select a date first");
+      return;
+    }
+    const [h, m] = scheduleTime.split(":").map(Number);
+    const dt = new Date(scheduleDate);
+    dt.setHours(h, m, 0);
+    toast.success(`Scheduled for ${format(dt, "MMM d, yyyy")} at ${scheduleTime} on ${schedulePlatform}`);
+  };
 
   return (
     <AppLayout>
