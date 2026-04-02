@@ -74,6 +74,25 @@ const CalendarPage = () => {
     dragItemRef.current = null;
   };
 
+  // Content items not yet scheduled (available for quick-schedule)
+  const unscheduledContent = mockContent.filter(
+    (c) => c.status !== "published" && !schedule.some((s) => s.contentId === c.id)
+  );
+
+  const handleQuickSchedule = (contentItem: typeof mockContent[0], targetDay: Date) => {
+    const newEntry: ScheduleItem = {
+      id: `qs-${Date.now()}`,
+      contentId: contentItem.id,
+      contentTitle: contentItem.title,
+      contentType: contentItem.contentType,
+      publishAt: new Date(targetDay.getFullYear(), targetDay.getMonth(), targetDay.getDate(), 9, 0, 0).toISOString(),
+      platform: contentItem.contentType === "linkedin" ? "LinkedIn" : contentItem.contentType === "twitter" ? "Twitter" : contentItem.contentType === "newsletter" ? "Newsletter" : "Blog",
+      status: "scheduled",
+    };
+    setSchedule((prev) => [...prev, newEntry]);
+    toast.success(`"${contentItem.title}" scheduled for ${format(targetDay, "MMM d")} at 09:00`);
+  };
+
   return (
     <AppLayout>
       <div className="p-6 lg:p-8 max-w-[1400px] mx-auto space-y-5">
