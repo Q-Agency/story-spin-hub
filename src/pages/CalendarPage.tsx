@@ -5,10 +5,11 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { StatusBadge, ContentTypeBadge } from "@/components/StatusBadge";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { mockSchedule } from "@/lib/mock-data";
+import { ContextMenu, ContextMenuContent, ContextMenuItem, ContextMenuTrigger, ContextMenuLabel, ContextMenuSeparator } from "@/components/ui/context-menu";
+import { mockSchedule, mockContent } from "@/lib/mock-data";
 import { ScheduleItem } from "@/lib/types";
-import { ChevronLeft, ChevronRight, ExternalLink, Clock, MapPin, GripVertical } from "lucide-react";
-import { format, addMonths, subMonths, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay, getDay, setDate, setMonth, setYear, getDate, getMonth, getYear } from "date-fns";
+import { ChevronLeft, ChevronRight, ExternalLink, Clock, MapPin, GripVertical, Plus, FileText } from "lucide-react";
+import { format, addMonths, subMonths, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay, getDay } from "date-fns";
 import { toast } from "sonner";
 
 const CalendarPage = () => {
