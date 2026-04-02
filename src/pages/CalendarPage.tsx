@@ -5,10 +5,11 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { StatusBadge, ContentTypeBadge } from "@/components/StatusBadge";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { mockSchedule } from "@/lib/mock-data";
+import { ContextMenu, ContextMenuContent, ContextMenuItem, ContextMenuTrigger, ContextMenuLabel, ContextMenuSeparator } from "@/components/ui/context-menu";
+import { mockSchedule, mockContent } from "@/lib/mock-data";
 import { ScheduleItem } from "@/lib/types";
-import { ChevronLeft, ChevronRight, ExternalLink, Clock, MapPin, GripVertical } from "lucide-react";
-import { format, addMonths, subMonths, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay, getDay, setDate, setMonth, setYear, getDate, getMonth, getYear } from "date-fns";
+import { ChevronLeft, ChevronRight, ExternalLink, Clock, MapPin, GripVertical, Plus, FileText } from "lucide-react";
+import { format, addMonths, subMonths, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay, getDay } from "date-fns";
 import { toast } from "sonner";
 
 const CalendarPage = () => {
@@ -73,6 +74,25 @@ const CalendarPage = () => {
     dragItemRef.current = null;
   };
 
+  // Content items not yet scheduled (available for quick-schedule)
+  const unscheduledContent = mockContent.filter(
+    (c) => c.status !== "published" && !schedule.some((s) => s.contentId === c.id)
+  );
+
+  const handleQuickSchedule = (contentItem: typeof mockContent[0], targetDay: Date) => {
+    const newEntry: ScheduleItem = {
+      id: `qs-${Date.now()}`,
+      contentId: contentItem.id,
+      contentTitle: contentItem.title,
+      contentType: contentItem.contentType,
+      publishAt: new Date(targetDay.getFullYear(), targetDay.getMonth(), targetDay.getDate(), 9, 0, 0).toISOString(),
+      platform: contentItem.contentType === "linkedin" ? "LinkedIn" : contentItem.contentType === "twitter" ? "Twitter" : contentItem.contentType === "newsletter" ? "Newsletter" : "Blog",
+      status: "scheduled",
+    };
+    setSchedule((prev) => [...prev, newEntry]);
+    toast.success(`"${contentItem.title}" scheduled for ${format(targetDay, "MMM d")} at 09:00`);
+  };
+
   return (
     <AppLayout>
       <div className="p-6 lg:p-8 max-w-[1400px] mx-auto space-y-5">
@@ -113,68 +133,102 @@ const CalendarPage = () => {
                 const isToday = isSameDay(day, new Date(2026, 2, 31));
                 const isSelected = selectedDay && isSameDay(day, selectedDay);
                 return (
-                  <div
-                    key={day.toISOString()}
-                    onClick={() => setSelectedDay(day)}
-                    onDragOver={(e) => handleDragOver(e, day)}
-                    onDragLeave={handleDragLeave}
-                    onDrop={(e) => handleDrop(e, day)}
-                    className={`min-h-[100px] border-b border-r border-border/40 p-1.5 cursor-pointer transition-colors hover:bg-accent/30 ${
-                      isToday ? "bg-primary/5" : ""
-                    } ${isSelected ? "ring-2 ring-primary ring-inset bg-primary/5" : ""} ${
-                      dragOverDay === day.toISOString() ? "bg-primary/15 ring-2 ring-primary/50 ring-inset" : ""
-                    }`}
-                  >
-                    <span className={`text-xs font-medium inline-flex h-6 w-6 items-center justify-center rounded-full ${
-                      isToday ? "gradient-primary text-primary-foreground" : "text-muted-foreground"
-                    }`}>
-                      {format(day, "d")}
-                    </span>
-                    <div className="space-y-1 mt-0.5">
-                      {events.map((e) => (
-                        <Popover key={e.id}>
-                          <PopoverTrigger asChild>
-                            <div
-                              draggable
-                              onDragStart={(ev) => { ev.stopPropagation(); handleDragStart(ev, e.id); }}
-                              className="rounded px-1.5 py-0.5 text-[10px] bg-primary/10 text-primary truncate cursor-grab active:cursor-grabbing hover:bg-primary/20 transition-colors flex items-center gap-0.5"
-                              onClick={(ev) => ev.stopPropagation()}
-                            >
-                              <GripVertical className="h-2.5 w-2.5 shrink-0 opacity-40" />
-                              {e.contentTitle}
+                  <ContextMenu key={day.toISOString()}>
+                    <ContextMenuTrigger asChild>
+                      <div
+                        onClick={() => setSelectedDay(day)}
+                        onDragOver={(e) => handleDragOver(e, day)}
+                        onDragLeave={handleDragLeave}
+                        onDrop={(e) => handleDrop(e, day)}
+                        className={`min-h-[100px] border-b border-r border-border/40 p-1.5 cursor-pointer transition-colors hover:bg-accent/30 ${
+                          isToday ? "bg-primary/5" : ""
+                        } ${isSelected ? "ring-2 ring-primary ring-inset bg-primary/5" : ""} ${
+                          dragOverDay === day.toISOString() ? "bg-primary/15 ring-2 ring-primary/50 ring-inset" : ""
+                        }`}
+                      >
+                        <span className={`text-xs font-medium inline-flex h-6 w-6 items-center justify-center rounded-full ${
+                          isToday ? "gradient-primary text-primary-foreground" : "text-muted-foreground"
+                        }`}>
+                          {format(day, "d")}
+                        </span>
+                        <div className="space-y-1 mt-0.5">
+                          {events.map((e) => (
+                            <Popover key={e.id}>
+                              <PopoverTrigger asChild>
+                                <div
+                                  draggable
+                                  onDragStart={(ev) => { ev.stopPropagation(); handleDragStart(ev, e.id); }}
+                                  className="rounded px-1.5 py-0.5 text-[10px] bg-primary/10 text-primary truncate cursor-grab active:cursor-grabbing hover:bg-primary/20 transition-colors flex items-center gap-0.5"
+                                  onClick={(ev) => ev.stopPropagation()}
+                                >
+                                  <GripVertical className="h-2.5 w-2.5 shrink-0 opacity-40" />
+                                  {e.contentTitle}
+                                </div>
+                              </PopoverTrigger>
+                              <PopoverContent className="w-72 p-0" align="start" side="right">
+                                <div className="p-3 border-b border-border/40">
+                                  <div className="flex items-center gap-2 mb-1">
+                                    <ContentTypeBadge type={e.contentType} />
+                                    <StatusBadge status={e.status} />
+                                  </div>
+                                  <h4 className="text-sm font-medium text-foreground mt-2">{e.contentTitle}</h4>
+                                </div>
+                                <div className="p-3 space-y-2">
+                                  <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                                    <Clock className="h-3 w-3" />
+                                    {format(new Date(e.publishAt), "MMM d, yyyy · HH:mm")}
+                                  </div>
+                                  <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                                    <MapPin className="h-3 w-3" />
+                                    {e.platform}
+                                  </div>
+                                  <Button
+                                    size="sm"
+                                    className="w-full mt-2 gap-1.5 text-xs"
+                                    onClick={() => handleEventClick(e)}
+                                  >
+                                    <ExternalLink className="h-3 w-3" />
+                                    Open in Editor
+                                  </Button>
+                                </div>
+                              </PopoverContent>
+                            </Popover>
+                          ))}
+                        </div>
+                      </div>
+                    </ContextMenuTrigger>
+                    <ContextMenuContent className="w-64">
+                      <ContextMenuLabel className="flex items-center gap-2">
+                        <Plus className="h-3 w-3" />
+                        Quick Schedule to {format(day, "MMM d")}
+                      </ContextMenuLabel>
+                      <ContextMenuSeparator />
+                      {unscheduledContent.length === 0 ? (
+                        <ContextMenuItem disabled className="text-xs text-muted-foreground">
+                          No unscheduled content available
+                        </ContextMenuItem>
+                      ) : (
+                        unscheduledContent.map((c) => (
+                          <ContextMenuItem
+                            key={c.id}
+                            onClick={() => handleQuickSchedule(c, day)}
+                            className="flex items-center gap-2"
+                          >
+                            <FileText className="h-3 w-3 shrink-0 text-muted-foreground" />
+                            <div className="flex-1 min-w-0">
+                              <span className="text-xs truncate block">{c.title}</span>
+                              <span className="text-[10px] text-muted-foreground capitalize">{c.contentType}</span>
                             </div>
-                          </PopoverTrigger>
-                          <PopoverContent className="w-72 p-0" align="start" side="right">
-                            <div className="p-3 border-b border-border/40">
-                              <div className="flex items-center gap-2 mb-1">
-                                <ContentTypeBadge type={e.contentType} />
-                                <StatusBadge status={e.status} />
-                              </div>
-                              <h4 className="text-sm font-medium text-foreground mt-2">{e.contentTitle}</h4>
-                            </div>
-                            <div className="p-3 space-y-2">
-                              <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                                <Clock className="h-3 w-3" />
-                                {format(new Date(e.publishAt), "MMM d, yyyy · HH:mm")}
-                              </div>
-                              <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                                <MapPin className="h-3 w-3" />
-                                {e.platform}
-                              </div>
-                              <Button
-                                size="sm"
-                                className="w-full mt-2 gap-1.5 text-xs"
-                                onClick={() => handleEventClick(e)}
-                              >
-                                <ExternalLink className="h-3 w-3" />
-                                Open in Editor
-                              </Button>
-                            </div>
-                          </PopoverContent>
-                        </Popover>
-                      ))}
-                    </div>
-                  </div>
+                          </ContextMenuItem>
+                        ))
+                      )}
+                      <ContextMenuSeparator />
+                      <ContextMenuItem onClick={() => navigate("/content/new")} className="flex items-center gap-2">
+                        <Plus className="h-3 w-3" />
+                        <span className="text-xs">Create new content</span>
+                      </ContextMenuItem>
+                    </ContextMenuContent>
+                  </ContextMenu>
                 );
               })}
             </div>
