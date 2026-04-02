@@ -140,7 +140,7 @@ const CalendarPage = () => {
                         onDragOver={(e) => handleDragOver(e, day)}
                         onDragLeave={handleDragLeave}
                         onDrop={(e) => handleDrop(e, day)}
-                        className={`min-h-[100px] border-b border-r border-border/40 p-1.5 cursor-pointer transition-colors hover:bg-accent/30 ${
+                        className={`group/day min-h-[100px] border-b border-r border-border/40 p-1.5 cursor-pointer transition-colors hover:bg-accent/30 ${
                           isToday ? "bg-primary/5" : ""
                         } ${isSelected ? "ring-2 ring-primary ring-inset bg-primary/5" : ""} ${
                           dragOverDay === day.toISOString() ? "bg-primary/15 ring-2 ring-primary/50 ring-inset" : ""
