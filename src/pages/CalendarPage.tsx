@@ -99,7 +99,7 @@ const CalendarPage = () => {
         <div>
           <h1 className="text-3xl font-display text-foreground">Calendar</h1>
           <p className="text-sm text-muted-foreground mt-0.5">
-            Schedule and track content publishing
+            Schedule and track content publishing · <span className="text-primary/70">Right-click any day to quick-schedule</span>
           </p>
         </div>
 
