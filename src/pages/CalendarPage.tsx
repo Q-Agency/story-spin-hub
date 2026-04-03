@@ -154,10 +154,7 @@ const CalendarPage = () => {
                         <div className="space-y-1 mt-0.5">
                           {events.length === 0 && (
                             <div className="flex items-center justify-center h-8 opacity-0 group-hover/day:opacity-100 transition-opacity">
-                              <span className="relative flex h-2 w-2">
-                                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary/40" />
-                                <span className="relative inline-flex rounded-full h-2 w-2 bg-primary/30" />
-                              </span>
+                              <Plus className="h-3.5 w-3.5 text-primary/50" />
                             </div>
                           )}
                           {events.map((e) => (
