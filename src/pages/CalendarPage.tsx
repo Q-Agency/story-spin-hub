@@ -155,7 +155,16 @@ const CalendarPage = () => {
                         <div className="space-y-1 mt-0.5">
                           {events.length === 0 && (
                             <div className="flex items-center justify-center h-8 opacity-0 group-hover/day:opacity-100 transition-opacity">
-                              <Plus className="h-3.5 w-3.5 text-primary/50" />
+                              <TooltipProvider delayDuration={300}>
+                                <Tooltip>
+                                  <TooltipTrigger asChild>
+                                    <Plus className="h-3.5 w-3.5 text-primary/50" />
+                                  </TooltipTrigger>
+                                  <TooltipContent side="bottom" className="text-xs">
+                                    Right-click to schedule
+                                  </TooltipContent>
+                                </Tooltip>
+                              </TooltipProvider>
                             </div>
                           )}
                           {events.map((e) => (
